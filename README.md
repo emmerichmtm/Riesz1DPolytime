@@ -156,6 +156,3 @@ For fixed `k`, this gives `O(n^4)` under the same conservative bound. For `k = T
 
 This reference implementation uses floating point capacities. For rational input points and fixed positive integer `s`, all capacities can instead be represented exactly as rational numbers; the same graph construction combined with an exact polynomial-time max-flow algorithm gives a standard Turing-polynomial algorithm.
 
-## Acknowledgement
-
-The sorted-index lattice viewpoint was suggested by Sanchayan Dutta, University of California, Davis, in a MathOverflow discussion. The key point is to view fixed-cardinality feasible sets as a distributive lattice of increasing index vectors, rather than as a cardinality slice of the Boolean lattice.
