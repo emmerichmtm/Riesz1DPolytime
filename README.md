@@ -1,5 +1,6 @@
-# CC 4.0 license 
 # One-Dimensional Minimum Riesz Energy by Min-Cut
+
+License notice: This repository content is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). See https://creativecommons.org/licenses/by/4.0/.
 
 This repository contains a small, dependency-free Python implementation of a polynomial-time algorithm for the one-dimensional fixed-cardinality minimum Riesz `s`-energy subset problem.
 
@@ -157,3 +158,6 @@ For fixed `k`, this gives `O(n^4)` under the same conservative bound. For `k = T
 
 This reference implementation uses floating point capacities. For rational input points and fixed positive integer `s`, all capacities can instead be represented exactly as rational numbers; the same graph construction combined with an exact polynomial-time max-flow algorithm gives a standard Turing-polynomial algorithm.
 
+## License
+
+Creative Commons Attribution 4.0 International (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/

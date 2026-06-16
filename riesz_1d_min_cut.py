@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: CC-BY-4.0
 """
 Polynomial-time graph-cut algorithm for the one-dimensional fixed-cardinality
 minimum Riesz s-energy subset problem.
+
+License notice: Creative Commons Attribution 4.0 International (CC BY 4.0).
+See https://creativecommons.org/licenses/by/4.0/.
 
 Problem
 -------
