@@ -13,8 +13,7 @@ choose indices i_0 < ... < i_{k-1} minimizing
 The implementation uses the threshold-variable min-cut formulation described
 in the accompanying README.  It has no third-party dependencies.
 
-The numerical implementation uses floating point capacities.  For publication-
-quality exact arithmetic with rational points and fixed integer s, the same
+The numerical implementation uses floating point capacities.  For  exact arithmetic with rational points and fixed integer s, the same
 combinatorial graph can be built with rational capacities and solved by an
 exact max-flow implementation.
 """
