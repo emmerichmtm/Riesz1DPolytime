@@ -1,3 +1,4 @@
+# CC 4.0 license 
 # One-Dimensional Minimum Riesz Energy by Min-Cut
 
 This repository contains a small, dependency-free Python implementation of a polynomial-time algorithm for the one-dimensional fixed-cardinality minimum Riesz `s`-energy subset problem.
