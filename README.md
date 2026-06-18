@@ -1,159 +1,245 @@
-# CC 4.0 license 
-# One-Dimensional Minimum Riesz Energy by Min-Cut
+# Riesz \(s\)-Energy Subset Selection on Ordered Point Sets
 
-This repository contains a small, dependency-free Python implementation of a polynomial-time algorithm for the one-dimensional fixed-cardinality minimum Riesz `s`-energy subset problem.
+This repository contains reproducibility material for the paper
 
-Given distinct real points
+> Michael T. M. Emmerich, *Polynomial-Time Riesz-Energy Subset Selection for Ordered Point Sets on Lines and \(\ell_1\)-Staircases*, arXiv preprint, 2026.
 
-```text
-x_0 < x_1 < ... < x_{n-1},
-```
+The central problem is the fixed-cardinality minimum Riesz \(s\)-energy subset-selection problem on an ordered point set
+\[
+x_1 < x_2 < \cdots < x_n.
+\]
+For a fixed exponent \(s>0\) and cardinality \(k\), the task is to choose
+\[
+1 \le i_1 < \cdots < i_k \le n
+\]
+minimizing
+\[
+E_s(i_1,\ldots,i_k)
+  = \sum_{1 \le p < q \le k} (x_{i_q}-x_{i_p})^{-s}.
+\]
 
-a cardinality `k`, and an exponent `s > 0`, the algorithm chooses indices
+## Two Python main files
 
-```text
-i_0 < i_1 < ... < i_{k-1}
-```
-
-that minimize
-
-```text
-sum_{p<q} (x[i_q] - x[i_p])^(-s).
-```
-
-The implementation uses the sorted-index lattice and threshold-variable min-cut formulation. It builds one directed `s`-`t` graph and solves one minimum cut.
-
-## Files
+The repository is organized around two executable Python entry points.
 
 ```text
-riesz_1d_min_cut.py   implementation, examples, command-line interface, self-test
-README.md             this file
+riesz_min_cut_main.py              # exact threshold/min-cut solver and small demo
+riesz_break_even_reproduction.py   # runtime experiment and enumeration comparison
 ```
 
-## Requirements
+### 1. `riesz_min_cut_main.py`
 
-Python 3.10 or newer. No third-party packages are required.
+This is the compact main implementation of the exact one-dimensional threshold/min-cut construction. It provides importable functions for
 
-## Quick start
+- constructing deterministic ordered test instances,
+- computing Riesz \(s\)-energy values,
+- solving the fixed-cardinality problem by the min-cut graph construction,
+- checking small instances by complete enumeration.
 
-Run the built-in examples:
+Run
 
 ```bash
-python riesz_1d_min_cut.py --examples
+python riesz_min_cut_main.py
 ```
 
-Run randomized correctness checks against brute force for small instances:
+to execute a small deterministic demo with \(n=16\), \(k=8\), \(s=1\). The script prints the selected subset, its energy, the threshold-vector representation, the graph size, and an enumeration check.
+
+### 2. `riesz_break_even_reproduction.py`
+
+This is the empirical runtime reproducibility script used for the manuscript subsection **Empirical Runtime Efficiency**. It compares
+
+1. complete enumeration over all \(k\)-subsets, and
+2. the explicit threshold/min-cut construction,
+
+on balanced instances \(n=2k\).
+
+Run
 
 ```bash
-python riesz_1d_min_cut.py --self-test
+python riesz_break_even_reproduction.py
 ```
 
-Solve your own instance:
-
-```bash
-python riesz_1d_min_cut.py --points "0 1 2 4 7 11" --k 4 --s 1.5
-```
-
-Expected output for this instance:
+to create
 
 ```text
-indices_0_based = [0, 3, 4, 5]
-indices_1_based = [1, 4, 5, 6]
-points = [0.0, 4.0, 7.0, 11.0]
-energy = 0.577850061395
+riesz_break_even_benchmark.csv
+riesz_break_even_times.png
 ```
 
-## Use as a module
+The benchmark uses deterministic mildly irregular ordered point sets
 
 ```python
-from riesz_1d_min_cut import minimize_riesz_1d
-
-x = [0, 1, 2, 4, 7, 11]
-result = minimize_riesz_1d(x, k=4, s=1.5)
-
-print(result.indices)  # zero-based indices in the sorted input
-print(result.points)   # selected coordinates
-print(result.energy)   # Riesz s-energy
+x_i = i + 0.05 * sin(1.7*i) + 0.01 * (i/n)**2
 ```
 
-## Mathematical idea
-
-Write a feasible `k`-subset as an increasing index vector
+with exponent
 
 ```text
-i_0 < i_1 < ... < i_{k-1}.
+s = 1
 ```
 
-Set
+and balanced cardinalities
 
 ```text
-i_r = r + y_r.
+n = 2k.
 ```
 
-Then feasibility is equivalent to
+Complete enumeration is run only up to the range where it remains practical. The min-cut method is run beyond this range.
+
+## Python environment
+
+The scripts were prepared for Python 3.10 or newer. Install the required packages with
+
+```bash
+python -m pip install numpy pandas matplotlib networkx numba
+```
+
+The algorithm demo requires only `numpy` and `networkx`. The benchmark additionally uses `numba`, `pandas`, and `matplotlib`.
+
+The complete-enumeration baseline in the benchmark is intentionally quite favorable to brute force because it is compiled with Numba. Conversely, the min-cut implementation uses a general-purpose NetworkX backend rather than a specialized max-flow implementation. The reported timings should therefore be interpreted as a reproducibility check and practical break-even experiment, not as an optimized performance claim.
+
+## What is compared in the benchmark?
+
+### Complete enumeration
+
+The exhaustive baseline evaluates all
+
+\[
+\binom{n}{k}
+\]
+
+candidate subsets and computes their Riesz energy. Since a direct energy evaluation costs \(O(k^2)\), the natural work scale is
+
+\[
+k^2 \binom{n}{k}.
+\]
+
+### Threshold min-cut construction
+
+The min-cut algorithm uses the threshold-variable graph described in the paper. For \(m=n-k\), the graph has
+
+\[
+N = k(n-k) = km
+\]
+
+threshold nodes and, in the direct construction, up to
+
+\[
+O(k^2(n-k)^2)
+\]
+
+finite pairwise arcs. The conservative cut-step bound quoted in the paper is
+
+\[
+O(k^4(n-k)^4),
+\]
+
+which becomes \(O(k^8)\), equivalently \(O(n^8/256)\), on balanced instances \(n=2k\). A looser comparison scale sometimes written as \(n^8/2\) gives a later theoretical crossing.
+
+## Expected benchmark results
+
+On the benchmark run used for the manuscript, exhaustive enumeration and min-cut agreed on all instances where both were executed. The practical break-even was observed around
 
 ```text
-0 <= y_0 <= y_1 <= ... <= y_{k-1} <= n-k.
+n = 24--26,  k = 12--13.
 ```
 
-Introduce threshold variables
+A representative timing table is:
+
+| n | k | binomial(n,k) | enumeration time (s) | min-cut time (s) | enumeration / min-cut |
+|---:|---:|---:|---:|---:|---:|
+| 20 | 10 | 184756 | 0.0089 | 0.0233 | 0.38 |
+| 22 | 11 | 705432 | 0.0435 | 0.0404 | 1.08 |
+| 24 | 12 | 2704156 | 0.1756 | 0.1827 | 0.96 |
+| 26 | 13 | 10400600 | 0.8130 | 0.0787 | 10.33 |
+| 28 | 14 | 40116600 | 3.4782 | 0.1106 | 31.44 |
+| 30 | 15 | 155117520 | 15.2084 | 0.1718 | 88.53 |
+
+The exact timings depend on the machine, Python version, BLAS/runtime environment, and NetworkX/Numba versions. The main qualitative observation is that the exponential growth of complete enumeration overtakes the polynomial min-cut approach already at moderate balanced sizes.
+
+## Compute environment used for the reported benchmark
+
+The timing values reported above were obtained in a ChatGPT/Python sandbox environment. The precise numbers should be treated as machine-dependent, but the environment was approximately:
 
 ```text
-z_{r,t} = 1[y_r >= t],     t = 1, ..., n-k.
+Python: 3.13.5
+Platform: Linux-4.4.0-x86_64-with-glibc2.41
+Processor: unknown
+Memory: MemTotal:        4194304 kB
+NumPy: 2.3.5
+Pandas: 2.2.3
+Matplotlib: 3.10.8
+NetworkX: 3.6.1
+Numba: 0.65.1
 ```
 
-The monotonicity constraints become closure constraints:
+For publication-quality performance claims, rerun the script on the target machine and report the local environment together with the generated CSV file.
+
+## Theoretical break-even scales
+
+For balanced instances \(n=2k\), comparing
+
+\[
+k^2 \binom{2k}{k}
+\]
+
+with the conservative balanced min-cut bound
+
+\[
+k^8
+\]
+
+gives a theoretical crossing at approximately
 
 ```text
-z_{r,t+1} <= z_{r,t},
-z_{r,t}   <= z_{r+1,t}.
+k = 13, n = 26.
 ```
 
-For each pair of ranks `p < q`, the pair interaction
+If only the number of subsets \(\binom{2k}{k}\) is compared with \(k^8\), the crossing is later, around
 
 ```text
-V_{pq}(a,b) = (x[q+b] - x[p+a])^(-s)
+k = 19, n = 38.
 ```
 
-has nonpositive mixed second differences on the feasible threshold domain. This is the one-dimensional Monge inequality for the decreasing convex function `h(d)=d^(-s)`. Hence the quadratic threshold terms are graph-representable:
+If one compares against the looser scale \(n^8/2\), the corresponding crossings shift to approximately
 
 ```text
--w x y = -w x + w x(1-y),     w >= 0.
+n = 36
 ```
 
-The term `w x(1-y)` is represented by a directed edge `x -> y` of capacity `w`. Unary terms are represented by source/sink arcs. Therefore the Riesz energy equals the cut capacity up to an additive constant, and a minimum cut gives a global optimum.
-
-## Complexity
-
-Let
+with the \(k^2\) energy-evaluation factor, or
 
 ```text
-m = n-k.
+n = 48
 ```
 
-The graph has
+when counting subsets only.
 
-```text
-N = k(n-k)
+## Reproducibility notes
+
+- The two Python main files are deterministic.
+- The point sets are generated internally by the scripts.
+- No external data files are required for the runtime benchmark.
+- The benchmark CSV stores the selected subset, objective value, graph size, and CPU times.
+- The benchmark plot is generated from the same data written to the CSV file.
+- The benchmark script checks that complete enumeration and min-cut give the same objective value whenever both methods are run.
+- For fair comparisons, report whether the exhaustive baseline is compiled with Numba and which max-flow backend is used for the min-cut computation.
+
+## Citation
+
+If you use this code or benchmark, please cite the accompanying paper.
+
+```bibtex
+@misc{Emmerich2026RieszLine,
+  author = {Emmerich, Michael T. M.},
+  title = {Polynomial-Time Riesz-Energy Subset Selection for Ordered Point Sets on Lines and \(\ell_1\)-Staircases},
+  year = {2026},
+  eprint = {2606.16946},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CG}
+}
 ```
 
-nonterminal threshold nodes and
+## License
 
-```text
-M = O(k^2(n-k)^2)
-```
-
-finite pairwise arcs, plus `O(k(n-k))` closure and unary arcs. The implementation solves one max-flow/min-cut problem on this graph.
-
-With a conservative Dinic-type worst-case bound `O(N^2 M)`, the cut step is bounded by
-
-```text
-O(k^4 (n-k)^4).
-```
-
-For fixed `k`, this gives `O(n^4)` under the same conservative bound. For `k = Theta(n)`, the graph has `O(n^2)` nodes and `O(n^4)` arcs.
-
-## Numerical note
-
-This reference implementation uses floating point capacities. For rational input points and fixed positive integer `s`, all capacities can instead be represented exactly as rational numbers; the same graph construction combined with an exact polynomial-time max-flow algorithm gives a standard Turing-polynomial algorithm.
-
+Under CC 4.0 license. All rights reserved.
